@@ -1,0 +1,42 @@
+{
+  "change_profile": {
+    "examples": [
+      "How do I update my profile?",
+      "Change profile picture",
+      "Edit my profile info",
+      "I want to change my profile",
+      "How to update my name?",
+      "Edit my personal details",
+      "Change my display name"
+    ],
+    "keywords": ["profile", "edit", "name", "picture", "details", "display"],
+    "response": "Navigate to: Settings > Edit Profile screen."
+  },
+  "reset_password": {
+    "examples": [
+      "Forgot password",
+      "Change my password",
+      "Reset login credentials"
+    ],
+    "keywords": ["password", "reset", "forgot"],
+    "response": "Go to: Settings > Security > Change Password."
+  },
+  "view_orders": {
+    "examples": [
+      "Where are my past orders?",
+      "Show purchase history",
+      "view orders"
+    ],
+    "keywords": ["orders", "history", "purchases"],
+    "response": "You can find your past orders under Orders > History."
+  },
+  "delete_account": {
+    "examples": [
+      "Delete my account",
+      "Remove all my data",
+      "Deactivate my account"
+    ],
+    "keywords": ["delete", "remove", "deactivate", "account"],
+    "response": "To delete your account, go to Settings > Privacy > Delete Account. Be careful!"
+  }
+}
