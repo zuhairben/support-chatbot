@@ -1,264 +1,357 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Support Chatbot</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f3f3f3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Support Chatbot</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f3f3f3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
 
-    #chat-container {
-      width: 400px;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-height: 70vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      transition: all 0.3s ease;
-    }
+      #chat-container {
+        width: 400px;
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-height: 70vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+      }
 
-    .message {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      animation: fadeIn 0.3s ease-in-out;
-    }
+      .message {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        animation: fadeIn 0.3s ease-in-out;
+      }
 
-    .message.user { justify-content: flex-end; text-align: right; }
-    .message.bot { justify-content: flex-start; }
+      .message.user {
+        justify-content: flex-end;
+        text-align: right;
+      }
+      .message.bot {
+        justify-content: flex-start;
+      }
 
-    .bubble {
-      padding: 0.6rem 0.9rem;
-      border-radius: 6px;
-      max-width: 85%;
-      line-height: 1.4;
-    }
+      .bubble {
+        padding: 0.6rem 0.9rem;
+        border-radius: 6px;
+        max-width: 85%;
+        line-height: 1.4;
+      }
 
-    .user .bubble { background: #d0eaff; }
-    .bot .bubble  { background: #f0f0f0; }
+      .user .bubble {
+        background: #d0eaff;
+      }
+      .bot .bubble {
+        background: #f0f0f0;
+      }
 
-    .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
 
-    #input-form {
-      display: flex;
-      gap: 0.5rem;
-      width: 400px;
-    }
+      #input-form {
+        display: flex;
+        gap: 0.5rem;
+        width: 400px;
+      }
 
-    #input-form input {
-      flex-grow: 1;
-      padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+      #input-form input {
+        flex-grow: 1;
+        padding: 0.5rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
 
-    #input-form button {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
+      #input-form button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+      }
 
-    #mic-btn {
-      background: transparent;
-      padding: 0;
-      border: none;
-    }
+      #mic-btn {
+        background: transparent;
+        padding: 0;
+        border: none;
+      }
 
-    #mic-img {
-      width: 30px;
-      height: 30px;
-      transition: transform 0.2s ease, filter 0.2s ease;
-    }
+      #mic-img {
+        width: 30px;
+        height: 30px;
+        transition: transform 0.2s ease, filter 0.2s ease;
+      }
 
-    #mic-btn:hover #mic-img {
-      transform: scale(1.1);
-      filter: drop-shadow(0 0 3px #007bff);
-    }
+      #mic-btn:hover #mic-img {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 3px #007bff);
+      }
 
-    .typing { font-style: italic; color: #999; font-size: 0.9rem; }
+      .typing {
+        font-style: italic;
+        color: #999;
+        font-size: 0.9rem;
+      }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.3rem;
-    }
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.3rem;
+      }
 
-    .suggestion-btn {
-      background: #e0e0e0;
-      border: none;
-      border-radius: 16px;
-      padding: 0.3rem 0.8rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
+      .suggestion-btn {
+        background: #e0e0e0;
+        border: none;
+        border-radius: 16px;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
 
-    .suggestion-btn:hover {
-      background: #d4e2ff;
-    }
-  </style>
-</head>
-<body>
+      .suggestion-btn:hover {
+        background: #d4e2ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Support Chatbot</h2>
 
-  <h2>Support Chatbot</h2>
+    <div id="chat-container"></div>
 
-  <div id="chat-container"></div>
+    <form id="input-form">
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Type your message..."
+        required
+      />
+      <button type="submit">Send</button>
+      <button type="button" id="mic-btn">
+        <img id="mic-img" src="{% static 'mic.png' %}" alt="Mic" />
+      </button>
+    </form>
 
-  <form id="input-form">
-    <input type="text" id="user-input" placeholder="Type your message..." required />
-    <button type="submit">Send</button>
-    <button type="button" id="mic-btn"><img id="mic-img" src="{% static 'mic.png' %}" alt="Mic" /></button>
-  </form>
+    <script>
+      const form = document.getElementById("input-form");
+      const input = document.getElementById("user-input");
+      const chat = document.getElementById("chat-container");
+      const micBtn = document.getElementById("mic-btn");
+      const micImg = document.getElementById("mic-img");
 
-  <script>
-    const form = document.getElementById("input-form");
-    const input = document.getElementById("user-input");
-    const chat = document.getElementById("chat-container");
-    const micBtn = document.getElementById("mic-btn");
-    const micImg = document.getElementById("mic-img");
+      const avatars = {
+        user: "{% static 'profile-user.png' %}",
+        bot: "{% static 'robot.png' %}",
+      };
 
-    const avatars = {
-      user: "{% static 'profile-user.png' %}",
-      bot: "{% static 'robot.png' %}"
-    };
+      const savedHistory = JSON.parse(
+        sessionStorage.getItem("chat_history") || "[]"
+      );
+      savedHistory.forEach((msg) =>
+        appendMessage(msg.text, msg.sender, msg.isSuggestion)
+      );
 
-    const savedHistory = JSON.parse(sessionStorage.getItem("chat_history") || "[]");
-    savedHistory.forEach(msg => appendMessage(msg.text, msg.sender, msg.isSuggestion));
+      if (savedHistory.length === 0) {
+        const intro =
+          "👋 Hi there! I’m your support assistant bot.\nI can help you with things like updating your profile, viewing past orders, resetting your password, and more.\nJust type your question below or choose a suggested option!";
+        appendMessage(intro, "bot");
+        saveMessage(intro, "bot");
+      }
 
-    // 👋 Show welcome intro if first time
-    if (savedHistory.length === 0) {
-      const intro = "👋 Hi there! I’m your support assistant bot.\nI can help you with things like updating your profile, viewing past orders, resetting your password, and more.\nJust type your question below or choose a suggested option!";
-      appendMessage(intro, "bot");
-      saveMessage(intro, "bot");
-    }
+      function saveMessage(text, sender, isSuggestion = false) {
+        const history = JSON.parse(
+          sessionStorage.getItem("chat_history") || "[]"
+        );
+        history.push({ text, sender, isSuggestion });
+        sessionStorage.setItem("chat_history", JSON.stringify(history));
+      }
 
-    function saveMessage(text, sender, isSuggestion=false) {
-      const history = JSON.parse(sessionStorage.getItem("chat_history") || "[]");
-      history.push({ text, sender, isSuggestion });
-      sessionStorage.setItem("chat_history", JSON.stringify(history));
-    }
+      function appendMessage(
+        text,
+        sender,
+        isSuggestion = false,
+        isGreeting = false
+      ) {
+        const msg = document.createElement("div");
+        msg.className = `message ${sender}`;
 
-    function appendMessage(text, sender, isSuggestion=false) {
-      const msg = document.createElement("div");
-      msg.className = `message ${sender}`;
+        const avatar = document.createElement("img");
+        avatar.src = avatars[sender];
+        avatar.className = "avatar";
 
-      const avatar = document.createElement("img");
-      avatar.src = avatars[sender];
-      avatar.className = "avatar";
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
 
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
+        if (isSuggestion || isGreeting) {
+          const greetingText = isGreeting
+            ? "Hello! How can I help you with:"
+            : "🤖 I didn't quite get that. Here's what I can help with:";
 
-      if (isSuggestion) {
-        bubble.innerHTML = "🤖 I didn't quite get that. Here's what I can help with:";
-        const suggestionsDiv = document.createElement("div");
-        suggestionsDiv.className = "suggestions";
+          const label = document.createElement("div");
+          label.textContent = greetingText;
+          bubble.appendChild(label);
 
-        text.split("\n").forEach(option => {
-          const btn = document.createElement("button");
-          btn.className = "suggestion-btn";
-          btn.textContent = option.replace(/^•\s*/, "");
-          btn.onclick = () => handleSuggestionClick(btn.textContent);
-          suggestionsDiv.appendChild(btn);
+          const suggestionsDiv = document.createElement("div");
+          suggestionsDiv.className = "suggestions";
+
+          text.split("\n").forEach((option) => {
+            if (option.trim()) {
+              const btn = document.createElement("button");
+              btn.className = "suggestion-btn";
+              btn.textContent = option.replace(/^•\s*/, "");
+              btn.onclick = () => handleSuggestionClick(btn.textContent);
+              suggestionsDiv.appendChild(btn);
+            }
+          });
+
+          bubble.appendChild(suggestionsDiv);
+        } else {
+          bubble.textContent = text;
+        }
+
+        if (sender === "user") {
+          msg.appendChild(bubble);
+          msg.appendChild(avatar);
+        } else {
+          msg.appendChild(avatar);
+          msg.appendChild(bubble);
+        }
+
+        chat.appendChild(msg);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function getCSRFToken() {
+        const name = "csrftoken";
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = cookies[i].trim();
+          if (cookie.startsWith(name + "=")) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+          }
+        }
+        return "";
+      }
+
+      async function handleUserInput(message) {
+        appendMessage(message, "user");
+        saveMessage(message, "user");
+
+        const response = await fetch("/chat/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+           },
+          body: JSON.stringify({ message }),
         });
 
-        bubble.appendChild(suggestionsDiv);
-      } else {
-        bubble.textContent = text;
+        const data = await response.json();
+
+        if (data.source === "greeting") {
+          appendMessage(data.response, "bot", false, true);
+          saveMessage(data.response, "bot", true);
+        } else if (data.source === "suggestion") {
+          appendMessage(data.response, "bot", true, false);
+          saveMessage(data.response, "bot", true);
+        } else {
+          appendMessage(data.response, "bot");
+          saveMessage(data.response, "bot");
+
+          // 🔥 Show navigation button if URL exists
+          if (data.urls && data.urls.length > 0) {
+            const navDiv = document.createElement("div");
+            navDiv.className = "message bot";
+            const avatar = document.createElement("img");
+            avatar.src = avatars.bot;
+            avatar.className = "avatar";
+
+            const buttonWrap = document.createElement("div");
+            buttonWrap.className = "bubble";
+
+            data.urls.forEach((url) => {
+              const btn = document.createElement("button");
+              btn.className = "suggestion-btn";
+              btn.textContent = "Go to screen →";
+              btn.onclick = () => {
+                window.location.href = url;
+              };
+              buttonWrap.appendChild(btn);
+            });
+
+            navDiv.appendChild(avatar);
+            navDiv.appendChild(buttonWrap);
+            chat.appendChild(navDiv);
+            chat.scrollTop = chat.scrollHeight;
+          }
+        }
       }
 
-      if (sender === "user") {
-        msg.appendChild(bubble);
-        msg.appendChild(avatar);
-      } else {
-        msg.appendChild(avatar);
-        msg.appendChild(bubble);
+      function handleSuggestionClick(text) {
+        input.value = text;
+        form.dispatchEvent(new Event("submit"));
       }
 
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function handleUserInput(message) {
-      appendMessage(message, "user");
-      saveMessage(message, "user");
-
-      const response = await fetch("/chat/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+        input.value = "";
+        await handleUserInput(message);
       });
 
-      const data = await response.json();
+      // 🎤 Speech Recognition
+      micBtn.addEventListener("click", () => {
+        if (!("webkitSpeechRecognition" in window)) {
+          alert("Speech recognition not supported.");
+          return;
+        }
 
-      const isSuggestion = data.source === "suggestion";
-      appendMessage(data.response, "bot", isSuggestion);
-      saveMessage(data.response, "bot", isSuggestion);
-    }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-    function handleSuggestionClick(text) {
-      input.value = text;
-      form.dispatchEvent(new Event("submit"));
-    }
+        recognition.start();
+        micImg.style.filter = "drop-shadow(0 0 6px #28a745)";
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const message = input.value.trim();
-      if (!message) return;
-      input.value = "";
-      await handleUserInput(message);
-    });
+        recognition.onresult = (event) => {
+          const spoken = event.results[0][0].transcript;
+          input.value = spoken;
+          micImg.style.filter = "";
+        };
 
-    // 🎤 Speech Recognition
-    micBtn.addEventListener("click", () => {
-      if (!("webkitSpeechRecognition" in window)) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.start();
-      micImg.style.filter = "drop-shadow(0 0 6px #28a745)";
-
-      recognition.onresult = (event) => {
-        const spoken = event.results[0][0].transcript;
-        input.value = spoken;
-        micImg.style.filter = "";
-      };
-
-      recognition.onerror = () => {
-        micImg.style.filter = "";
-      };
-    });
-  </script>
-</body>
+        recognition.onerror = () => {
+          micImg.style.filter = "";
+        };
+      });
+    </script>
+  </body>
 </html>

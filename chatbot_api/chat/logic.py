@@ -1,15 +1,26 @@
-import json
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+from .models import Intent  # 🔹 Import Django model
 
-# 🔹 Load intent data
-with open("intents.json", "r", encoding="utf-8") as f:
-    intent_data = json.load(f)
+# 🔹 Load intent data from database
+def load_intent_data():
+    data = {}
+    for intent in Intent.objects.all():
+        data[intent.name] = {
+            "examples": [ex.text for ex in intent.examples.all()],
+            "keywords": [kw.word for kw in intent.keywords.all()],
+            "response": intent.response,
+            "url": intent.url
+        }
+    return data
+
+intent_data = load_intent_data()
 
 intents = {k: v["examples"] for k, v in intent_data.items()}
 intent_keywords = {k: v["keywords"] for k, v in intent_data.items()}
 intent_responses = {k: v["response"] for k, v in intent_data.items()}
+intent_urls = {k: v.get("url") for k, v in intent_data.items()}
 
 # 🔹 Load embedding model
 intent_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -30,7 +41,7 @@ def keyword_match(user_input):
             matched.append(intent)
     return matched
 
-# 🔹 Load fallback LLM (optional, not used in new fallback)
+# 🔹 Load fallback LLM (optional)
 model_name = "microsoft/DialoGPT-medium"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
@@ -58,36 +69,51 @@ def detect_multiple_intents(user_input, threshold=0.7):
 
 # 🔹 Main chatbot handler
 def handle_user_input(user_input):
+    # Greeting detection
+    greetings = ["hi", "hello", "hey", "hlo", "salam", "asalamualaikum"]
+    is_greeting = any(word in user_input.lower().strip() for word in greetings)
+
     # Step 1: Try intent match via embedding
     matched_intents = detect_multiple_intents(user_input)
 
     if matched_intents:
         reply_lines = []
+        urls = []
         for intent in matched_intents:
             reply_lines.append(f"- {intent_responses[intent]}")
+            if intent in intent_urls and intent_urls[intent]:
+                urls.append(intent_urls[intent])
         return {
             "intent": list(matched_intents.keys()),
             "response": "\n".join(reply_lines),
-            "source": "multi-intent"
+            "source": "multi-intent",
+            "urls": urls
         }
 
     # Step 2: Try keyword fallback
     keyword_matches = keyword_match(user_input)
     if keyword_matches:
         reply_lines = [f"- {intent_responses[intent]}" for intent in keyword_matches]
+        urls = [intent_urls[intent] for intent in keyword_matches if intent in intent_urls]
         return {
             "intent": keyword_matches,
             "response": "\n".join(reply_lines),
-            "source": "keyword"
+            "source": "keyword",
+            "urls": urls
         }
 
     # Step 3: Suggest options (guided fallback)
     suggestions = "\n".join([f"• {v['examples'][0]}" for k, v in intent_data.items()])
-    fallback_response = (
-        suggestions
-    )
-    return {
-        "intent": None,
-        "response": fallback_response,
-        "source": "suggestion"
-    }
+
+    if is_greeting:
+        return {
+            "intent": None,
+            "response": suggestions,
+            "source": "greeting"
+        }
+    else:
+        return {
+            "intent": None,
+            "response": suggestions,
+            "source": "suggestion"
+        }
